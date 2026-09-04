@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SignalOps — Project Overview</title>
+  <style>
+    :root {
+      --ink: #14221f;
+      --muted: #667771;
+      --teal: #0f8178;
+      --teal-dark: #0b5d57;
+      --teal-soft: #e9f6f3;
+      --line: #dbe6e2;
+      --paper: #ffffff;
+      --canvas: #f4f7f6;
+      --red: #c63d4b;
+      --amber: #a96b07;
+      --blue: #316eaa;
+    }
+
+    * { box-sizing: border-box; }
+
+    @page {
+      size: A4;
+      margin: 16mm 14mm 17mm;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: 10.2pt;
+      line-height: 1.55;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+    h1, h2, h3 { break-after: avoid; }
+    section, .card, table, .flow { break-inside: avoid; }
+
+    .cover {
+      min-height: 255mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 18mm 14mm;
+      color: #fff;
+      background:
+        radial-gradient(circle at 82% 18%, rgba(76, 213, 196, .24), transparent 29%),
+        linear-gradient(145deg, #102d2a 0%, #0c625b 58%, #0e8b80 100%);
+      border-radius: 5mm;
+      page-break-after: always;
+    }
+
+    .brand-mark {
+      width: 16mm;
+      height: 16mm;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(255,255,255,.34);
+      border-radius: 4mm;
+      background: rgba(255,255,255,.12);
+      font-size: 22pt;
+    }
+
+    .cover-main { max-width: 148mm; }
+    .cover-kicker {
+      margin-bottom: 6mm;
+      color: #a9f0e7;
+      font-size: 9pt;
+      font-weight: 700;
+      letter-spacing: 2.2px;
+      text-transform: uppercase;
+    }
+
+    .cover h1 {
+      margin-bottom: 6mm;
+      font-size: 36pt;
+      line-height: 1.05;
+      letter-spacing: -1.4px;
+    }
+
+    .cover .subtitle {
+      max-width: 130mm;
+      margin-bottom: 12mm;
+      color: #d9f2ee;
+      font-size: 15pt;
+      line-height: 1.45;
+    }
+
+    .cover-summary {
+      max-width: 140mm;
+      padding: 7mm;
+      color: #eaf8f6;
+      background: rgba(4, 36, 33, .28);
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 4mm;
+    }
+
+    .cover-summary strong { color: #fff; }
+    .cover-meta {
+      display: flex;
+      justify-content: space-between;
+      padding-top: 7mm;
+      color: #c1e7e2;
+      border-top: 1px solid rgba(255,255,255,.2);
+      font-size: 9pt;
+    }
+
+    .page-header {
+      margin-bottom: 8mm;
+      padding-bottom: 4mm;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .page-header span {
+      color: var(--teal);
+      font-size: 8pt;
+      font-weight: 750;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    h2 {
+      margin-bottom: 5mm;
+      color: #102f2b;
+      font-size: 20pt;
+      line-height: 1.2;
+      letter-spacing: -.45px;
+    }
+
+    h3 {
+      margin-bottom: 2mm;
+      color: #173f3a;
+      font-size: 12pt;
+    }
+
+    .lead {
+      margin-bottom: 7mm;
+      color: #425650;
+      font-size: 12pt;
+      line-height: 1.6;
+    }
+
+    .eyebrow {
+      margin-bottom: 2mm;
+      color: var(--teal);
+      font-size: 8pt;
+      font-weight: 750;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5mm;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 4mm;
+    }
+
+    .card {
+      padding: 5mm;
+      background: var(--canvas);
+      border: 1px solid var(--line);
+      border-radius: 3mm;
+    }
+
+    .card p:last-child { margin-bottom: 0; }
+    .icon {
+      width: 10mm;
+      height: 10mm;
+      margin-bottom: 3mm;
+      display: grid;
+      place-items: center;
+      color: var(--teal-dark);
+      background: var(--teal-soft);
+      border-radius: 2.5mm;
+      font-size: 15pt;
+      font-weight: 700;
+    }
+
+    ul { margin: 2mm 0 0; padding-left: 5mm; }
+    li { margin-bottom: 1.2mm; }
+    li::marker { color: var(--teal); }
+
+    .flow {
+      margin: 6mm 0;
+      padding: 6mm;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
+      align-items: center;
+      gap: 3mm;
+      background: #f7faf9;
+      border: 1px solid var(--line);
+      border-radius: 4mm;
+    }
+
+    .flow-node {
+      min-height: 27mm;
+      padding: 4mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      text-align: center;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 2.5mm;
+    }
+
+    .flow-node b { color: var(--teal-dark); }
+    .flow-node small { margin-top: 1mm; color: var(--muted); line-height: 1.35; }
+    .arrow { color: var(--teal); font-size: 16pt; font-weight: 700; }
+
+    .callout {
+      margin: 5mm 0;
+      padding: 5mm 6mm;
+      color: #244d47;
+      background: var(--teal-soft);
+      border-left: 3px solid var(--teal);
+      border-radius: 2mm;
+    }
+
+    table {
+      width: 100%;
+      margin: 4mm 0 7mm;
+      border-collapse: collapse;
+      font-size: 9.3pt;
+    }
+
+    th, td {
+      padding: 3mm;
+      vertical-align: top;
+      text-align: left;
+      border-bottom: 1px solid var(--line);
+    }
+
+    th {
+      color: #2a524c;
+      background: var(--teal-soft);
+      font-size: 8pt;
+      letter-spacing: .5px;
+      text-transform: uppercase;
+    }
+
+    code {
+      padding: .4mm 1.2mm;
+      color: #22423d;
+      background: #edf3f1;
+      border-radius: 1mm;
+      font-family: Consolas, monospace;
+      font-size: 8.5pt;
+    }
+
+    .tag-row { display: flex; flex-wrap: wrap; gap: 2mm; }
+    .tag {
+      padding: 1.3mm 2.4mm;
+      color: #28544d;
+      background: var(--teal-soft);
+      border: 1px solid #cee7e2;
+      border-radius: 9mm;
+      font-size: 8pt;
+      font-weight: 650;
+    }
+
+    .page-break { page-break-before: always; }
+    .footer-note {
+      margin-top: 10mm;
+      padding-top: 4mm;
+      color: #7a8984;
+      border-top: 1px solid var(--line);
+      font-size: 8pt;
+    }
+  </style>
+</head>
+<body>
+  <section class="cover">
+    <div class="brand-mark">◉</div>
+    <div class="cover-main">
+      <div class="cover-kicker">Project overview</div>
+      <h1>SignalOps</h1>
+      <p class="subtitle">Multi-tenant emergency notification and employee-safety communication platform.</p>
+      <div class="cover-summary">
+        <strong>What SignalOps does</strong><br />
+        It gives organisations one controlled system to prepare, approve, deliver and audit emergency messages while tracking employee safety responses across facilities.
+      </div>
+    </div>
+    <div class="cover-meta">
+      <span>Product and technical context</span>
+      <span>September 2026</span>
+    </div>
+  </section>
+
+  <main>
+    <div class="page-header"><span>SignalOps</span><span>01 · Product</span></div>
+    <div class="eyebrow">Purpose</div>
+    <h2>A single operational channel for critical communication</h2>
+    <p class="lead">SignalOps is designed for organisations that must notify people quickly, prove that messages were delivered, and understand who is safe during an incident.</p>
+
+    <div class="grid-3">
+      <article class="card">
+        <div class="icon">!</div>
+        <h3>Communicate</h3>
+        <p>Send prepared or incident-specific alerts to an entire organisation, location, building, group or individual.</p>
+      </article>
+      <article class="card">
+        <div class="icon">✓</div>
+        <h3>Account for people</h3>
+        <p>Track safe acknowledgements, non-response and assistance requests against an immutable recipient snapshot.</p>
+      </article>
+      <article class="card">
+        <div class="icon">§</div>
+        <h3>Govern</h3>
+        <p>Use permissions, approval policies and audit history to control who can create, approve, release and resolve alerts.</p>
+      </article>
+    </div>
+
+    <div style="height:7mm"></div>
+    <div class="grid-2">
+      <article>
+        <div class="eyebrow">Primary users</div>
+        <h3>Organisation administrators and controllers</h3>
+        <ul>
+          <li>Maintain employees and operational locations</li>
+          <li>Prepare emergency message templates</li>
+          <li>Create and release alerts</li>
+          <li>Approve sensitive alerts when policy requires it</li>
+          <li>Monitor delivery and employee responses</li>
+        </ul>
+      </article>
+      <article>
+        <div class="eyebrow">Recipients</div>
+        <h3>Employees using the mobile experience</h3>
+        <ul>
+          <li>Receive alerts relevant to their assignment</li>
+          <li>Review incident instructions</li>
+          <li>Confirm that they are safe</li>
+          <li>Request assistance with an optional note</li>
+          <li>Access facility and muster-point context</li>
+        </ul>
+      </article>
+    </div>
+
+    <div class="callout"><strong>Commercial model:</strong> each customer is represented as an isolated organisation/tenant. The same platform can serve multiple customers without mixing their users, facilities, alerts or audit records.</div>
+
+    <div class="page-break"></div>
+    <div class="page-header"><span>SignalOps</span><span>02 · Workflow</span></div>
+    <div class="eyebrow">Operational lifecycle</div>
+    <h2>From prepared message to accountable response</h2>
+
+    <div class="flow">
+      <div class="flow-node"><b>Prepare</b><small>Templates, audience, channels and acknowledgement policy</small></div>
+      <div class="arrow">→</div>
+      <div class="flow-node"><b>Govern</b><small>Draft, submit, approve, return or emergency release</small></div>
+      <div class="arrow">→</div>
+      <div class="flow-node"><b>Deliver</b><small>Email and Android push through an outbox worker</small></div>
+      <div class="arrow">→</div>
+      <div class="flow-node"><b>Respond</b><small>Safe, awaiting response or assistance required</small></div>
+    </div>
+
+    <table>
+      <thead><tr><th>Stage</th><th>Meaning</th><th>Control</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Draft</strong></td><td>The alert and recipient snapshot exist, but no delivery has been released.</td><td>Creator can submit; authorised sender can release.</td></tr>
+        <tr><td><strong>Awaiting approval</strong></td><td>A second authorised person must review the alert.</td><td>Self-approval is prohibited.</td></tr>
+        <tr><td><strong>Active</strong></td><td>The alert has been released and appears in operational monitoring.</td><td>Delivery, acknowledgements and assistance are tracked.</td></tr>
+        <tr><td><strong>Resolved / cancelled</strong></td><td>The incident lifecycle has ended while its records remain available.</td><td>History and audit evidence are retained.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="grid-2">
+      <article class="card">
+        <h3>Audience model</h3>
+        <p>An alert can target the whole organisation, a facility, building, department, saved group or individual employee. Recipients are resolved and snapshotted when the alert is created.</p>
+      </article>
+      <article class="card">
+        <h3>Delivery evidence</h3>
+        <p>Summary metrics count unique people reached. Alert detail retains channel-level delivery status, provider information, timestamps and failure codes for every recipient.</p>
+      </article>
+    </div>
+
+    <div class="page-break"></div>
+    <div class="page-header"><span>SignalOps</span><span>03 · System</span></div>
+    <div class="eyebrow">Application architecture</div>
+    <h2>Three applications connected by one tenant-scoped API</h2>
+
+    <table>
+      <thead><tr><th>Component</th><th>Responsibility</th><th>Technology</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Admin portal</strong></td><td>Organisation directory, facilities, templates, roles, alert lifecycle, delivery detail, responses and audit.</td><td>React 19, TypeScript, Vite, Netlify</td></tr>
+        <tr><td><strong>API</strong></td><td>Authentication, validation, permissions, tenant isolation, domain workflows and read models.</td><td>Node.js 22, Express 5, Zod</td></tr>
+        <tr><td><strong>Delivery worker</strong></td><td>Processes durable outbox jobs, invokes providers, records attempts and retries failures.</td><td>Node.js, PostgreSQL outbox</td></tr>
+        <tr><td><strong>Employee app</strong></td><td>Recipient alert feed, safety acknowledgement, assistance and device registration.</td><td>Flutter / Android</td></tr>
+        <tr><td><strong>Data store</strong></td><td>Tenants, users, assignments, alerts, recipients, delivery attempts, responses and append-only audit events.</td><td>PostgreSQL on AWS RDS</td></tr>
+      </tbody>
+    </table>
+
+    <div class="flow">
+      <div class="flow-node"><b>Admin portal</b><small>HTTPS requests with admin JWT audience</small></div>
+      <div class="arrow">→</div>
+      <div class="flow-node"><b>SignalOps API</b><small>Validates tenant, identity and permissions</small></div>
+      <div class="arrow">→</div>
+      <div class="flow-node"><b>PostgreSQL + outbox</b><small>Business records and durable delivery jobs</small></div>
+      <div class="arrow">→</div>
+      <div class="flow-node"><b>SES / FCM</b><small>Email and Android push providers</small></div>
+    </div>
+
+    <p>The employee application communicates back through the same API using a separate mobile JWT audience. Acknowledgements, assistance requests and device events are always verified against the recipient’s tenant and user identity.</p>
+
+    <div class="eyebrow">Delivery design</div>
+    <h3>Transactional outbox rather than direct provider calls</h3>
+    <p>Releasing an alert writes delivery records and outbox jobs inside the database transaction. A separate worker claims and processes those jobs. This avoids losing notifications if a provider is slow or unavailable and creates a durable history of retries and failures.</p>
+
+    <div class="page-break"></div>
+    <div class="page-header"><span>SignalOps</span><span>04 · Domain</span></div>
+    <div class="eyebrow">Core information model</div>
+    <h2>Organisation structure and incident evidence</h2>
+
+    <div class="grid-2">
+      <article class="card">
+        <h3>Organisation directory</h3>
+        <ul>
+          <li>Tenant and organisation settings</li>
+          <li>Portal users and employees</li>
+          <li>Departments and job assignments</li>
+          <li>Facilities, buildings and muster points</li>
+          <li>Saved recipient groups</li>
+          <li>Roles and explicit permissions</li>
+        </ul>
+      </article>
+      <article class="card">
+        <h3>Alert and response records</h3>
+        <ul>
+          <li>Templates and delivery channels</li>
+          <li>Alerts and lifecycle timestamps</li>
+          <li>Audience definitions and recipient snapshots</li>
+          <li>Per-recipient delivery attempts</li>
+          <li>Acknowledgements and assistance requests</li>
+          <li>Approvals and immutable audit events</li>
+        </ul>
+      </article>
+    </div>
+
+    <div style="height:7mm"></div>
+    <div class="eyebrow">Channel model</div>
+    <table>
+      <thead><tr><th>Channel</th><th>Role in SignalOps</th><th>Implementation</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Email</strong></td><td>Operational alert delivery, invitations and password recovery.</td><td>AWS SES using the EC2 instance role.</td></tr>
+        <tr><td><strong>Android push</strong></td><td>Time-sensitive delivery to registered employee devices.</td><td>Firebase Cloud Messaging provider adapter.</td></tr>
+        <tr><td><strong>SMS</strong></td><td>Represented in the domain for future extension.</td><td>No provider is enabled; the product does not present it as operational.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="eyebrow">Authentication model</div>
+    <div class="grid-3">
+      <article class="card"><h3>Portal identity</h3><p>Admin access tokens use the <code>signalops-admin</code> audience.</p></article>
+      <article class="card"><h3>Mobile identity</h3><p>Employee access tokens use the <code>signalops-mobile</code> audience.</p></article>
+      <article class="card"><h3>Session safety</h3><p>Short-lived access tokens and rotating, hashed refresh tokens protect long-running sessions.</p></article>
+    </div>
+
+    <div class="page-break"></div>
+    <div class="page-header"><span>SignalOps</span><span>05 · Security</span></div>
+    <div class="eyebrow">Tenant and access boundaries</div>
+    <h2>Isolation and least privilege are part of every request</h2>
+
+    <div class="grid-2">
+      <article>
+        <h3>Tenant isolation</h3>
+        <p>Business endpoints take tenant identity from the verified token, not from a client-supplied tenant identifier. Queries and mutations scope records using that trusted tenant context.</p>
+      </article>
+      <article>
+        <h3>Permission enforcement</h3>
+        <p>Backend permissions are authoritative. The portal mirrors them by hiding or disabling actions the current role cannot execute.</p>
+      </article>
+      <article>
+        <h3>Approval separation</h3>
+        <p>A creator cannot approve their own approval-required alert. A different authorised person must perform the review.</p>
+      </article>
+      <article>
+        <h3>Audit integrity</h3>
+        <p>Operational audit records are append-only at the database level and include actor, request, entity, timestamps, and before/after context.</p>
+      </article>
+    </div>
+
+    <div class="callout"><strong>Secret handling:</strong> provider credentials stay in environment configuration, the EC2 instance role or a managed secret store. Tenant channel settings contain non-secret preferences only.</div>
+
+    <div class="eyebrow">Account security</div>
+    <ul>
+      <li>Passwords are stored using one-way hashing.</li>
+      <li>Invitations use single-use activation tokens.</li>
+      <li>Password recovery uses a six-digit email OTP with expiration and keyed verification.</li>
+      <li>Forgot-password responses do not reveal whether an address exists.</li>
+      <li>Successful password reset invalidates existing refresh sessions.</li>
+    </ul>
+
+    <div class="page-break"></div>
+    <div class="page-header"><span>SignalOps</span><span>06 · Deployment</span></div>
+    <div class="eyebrow">Production topology</div>
+    <h2>Isolated services on shared AWS infrastructure</h2>
+
+    <p>SignalOps shares an AWS account, EC2 instance and RDS instance with another product, but its runtime and data remain isolated.</p>
+
+    <table>
+      <thead><tr><th>Layer</th><th>SignalOps configuration</th></tr></thead>
+      <tbody>
+        <tr><td>Admin portal</td><td><code>https://signal-ops.netlify.app/</code></td></tr>
+        <tr><td>Public API</td><td><code>https://signalops-api.iot-cspllabs.com/api/v1</code></td></tr>
+        <tr><td>Internal API listener</td><td><code>127.0.0.1:5002</code> behind Nginx</td></tr>
+        <tr><td>Process manager</td><td><code>signalops-api</code> and <code>signalops-worker</code> under PM2</td></tr>
+        <tr><td>Database</td><td>Dedicated SignalOps PostgreSQL database and least-privilege application role on RDS</td></tr>
+        <tr><td>Email identity</td><td>Verified SES domain <code>iot-cspllabs.com</code>; operational sender <code>notifications@iot-cspllabs.com</code></td></tr>
+        <tr><td>AWS region</td><td><code>ap-south-1</code></td></tr>
+      </tbody>
+    </table>
+
+    <div class="eyebrow">Source layout</div>
+    <table>
+      <thead><tr><th>Application</th><th>Local folder</th><th>Repository</th></tr></thead>
+      <tbody>
+        <tr><td>Admin frontend</td><td><code>D:\Notification_platform</code></td><td><code>amey990/signalops-frontend</code></td></tr>
+        <tr><td>Backend</td><td><code>D:\Notification-platform-backend</code></td><td><code>commedia-solutions/Notification-platform-backend</code></td></tr>
+        <tr><td>Employee app</td><td><code>D:\Notification-platform-app</code></td><td>Flutter application source</td></tr>
+      </tbody>
+    </table>
+
+    <div class="eyebrow">Technology summary</div>
+    <div class="tag-row">
+      <span class="tag">React</span><span class="tag">TypeScript</span><span class="tag">Vite</span>
+      <span class="tag">Flutter</span><span class="tag">Node.js</span><span class="tag">Express</span>
+      <span class="tag">PostgreSQL</span><span class="tag">AWS RDS</span><span class="tag">AWS SES</span>
+      <span class="tag">Firebase FCM</span><span class="tag">PM2</span><span class="tag">Nginx</span>
+      <span class="tag">Netlify</span><span class="tag">JWT</span><span class="tag">Zod</span>
+    </div>
+
+    <div class="page-break"></div>
+    <div class="page-header"><span>SignalOps</span><span>07 · Product principles</span></div>
+    <div class="eyebrow">Implementation intent</div>
+    <h2>Operational truth over demonstration-only behaviour</h2>
+
+    <div class="grid-2">
+      <article class="card"><h3>Real data</h3><p>Counts, statuses and assignments must come from backend records. The product avoids fake connectivity, safety or occupancy states.</p></article>
+      <article class="card"><h3>Traceable actions</h3><p>Important state changes create durable records so an organisation can reconstruct what happened and who acted.</p></article>
+      <article class="card"><h3>Least privilege</h3><p>Users see and perform only the operations granted by their organisation role.</p></article>
+      <article class="card"><h3>Preparedness with flexibility</h3><p>Templates accelerate emergency communication while controlled editing supports the facts of a live incident.</p></article>
+      <article class="card"><h3>Reliable delivery</h3><p>Provider calls are asynchronous and retryable; delivery evidence is stored separately from alert business state.</p></article>
+      <article class="card"><h3>Customer isolation</h3><p>Multi-tenant design is retained internally even when the user interface presents a single organisation context.</p></article>
+    </div>
+
+    <div style="height:8mm"></div>
+    <div class="eyebrow">Current customer context</div>
+    <p>The initial organisation is <strong>Avenir Manufacturing</strong>. The portal is structured as that organisation’s command centre while the backend remains suitable for additional customer tenants.</p>
+
+    <div class="footer-note">This document describes the SignalOps product, architecture and implementation context. It intentionally excludes development backlogs, future phases and task planning.</div>
+  </main>
+</body>
+</html>

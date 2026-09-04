@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.chrome-smoke/
+signalops-preview.png
+.audit-*/
+.edge-audit-*/
+audit-*.png
+*.local
+.env
+.env.*
+!.env.example
+
+.vercel
+.env*
