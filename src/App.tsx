@@ -5906,8 +5906,8 @@ function AddPersonModal({
           <div className="info-note">
             <Smartphone size={19} />
             <span>
-              The recipient will receive a secure email link to set their
-              password, then sign in to the mobile app.
+              The recipient will receive a single-use activation code by email
+              to enter in the mobile app and create their password.
             </span>
           </div>
           {validationError && (
