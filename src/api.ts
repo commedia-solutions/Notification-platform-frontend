@@ -503,6 +503,8 @@ export const api = {
       method: "PATCH",
       body: body(value),
     }),
+  deleteUser: (id: string) =>
+    request<void>(`/admin/users/${id}`, { method: "DELETE" }),
   resendInvitation: (id: string) =>
     request<{ sent: boolean }>(`/admin/users/${id}/resend-invitation`, {
       method: "POST",

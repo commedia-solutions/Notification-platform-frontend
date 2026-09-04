@@ -521,6 +521,7 @@ function App() {
   const tenantRecipients = recipients.filter(
     (item) => item.tenantId === tenantId && item.accountType === "employee",
   );
+  const tenantUsers = recipients.filter((item) => item.tenantId === tenantId);
   const activeBroadcasts = tenantBroadcasts.filter(
     (item) => item.status === "active",
   );
@@ -731,10 +732,6 @@ function App() {
 
   const syncRecipients = async (next: Recipient[]) => {
     try {
-      const removed = recipients.find(
-        (person) => !next.some((candidate) => candidate.id === person.id),
-      );
-      if (removed) await api.updateUser(removed.id, { status: "disabled" });
       const changed = next.find((person) => {
         const current = recipients.find(
           (candidate) => candidate.id === person.id,
@@ -763,9 +760,21 @@ function App() {
         });
       }
       await loadWorkspace();
-      setToast(removed ? `${removed.name} disabled` : "Employee updated");
+      setToast("User updated");
     } catch (error) {
       setToast(errorMessage(error));
+      throw error;
+    }
+  };
+
+  const deleteUser = async (person: Recipient) => {
+    try {
+      await api.deleteUser(person.id);
+      await loadWorkspace();
+      setToast(`${person.name} permanently removed`);
+    } catch (error) {
+      setToast(errorMessage(error));
+      throw error;
     }
   };
 
@@ -1406,7 +1415,7 @@ function App() {
           )}
           {page === "people" && (
             <PeoplePage
-              recipients={tenantRecipients}
+              recipients={tenantUsers}
               departments={departments.filter(
                 (item) => item.tenantId === tenantId,
               )}
@@ -1416,7 +1425,9 @@ function App() {
               )}
               canManageUsers={hasPermission("users.manage")}
               canManageDirectory={hasPermission("directory.manage")}
+              currentUserId={currentUser.id}
               onRecipientsChange={syncRecipients}
+              onDeleteUser={deleteUser}
               onDepartmentsChange={syncDepartments}
               onGroupsChange={syncGroups}
               onResendInvitation={async (id) => {
@@ -2907,7 +2918,9 @@ function PeoplePage({
   facilities,
   canManageUsers,
   canManageDirectory,
+  currentUserId,
   onRecipientsChange,
+  onDeleteUser,
   onDepartmentsChange,
   onGroupsChange,
   onResendInvitation,
@@ -2919,7 +2932,9 @@ function PeoplePage({
   facilities: Facility[];
   canManageUsers: boolean;
   canManageDirectory: boolean;
-  onRecipientsChange: (people: Recipient[]) => void;
+  currentUserId: string;
+  onRecipientsChange: (people: Recipient[]) => Promise<void>;
+  onDeleteUser: (person: Recipient) => Promise<void>;
   onDepartmentsChange: (departments: Department[]) => void;
   onGroupsChange: (groups: AudienceGroup[]) => void;
   onResendInvitation: (id: string) => void;
@@ -2927,6 +2942,9 @@ function PeoplePage({
 }) {
   const [query, setQuery] = useState("");
   const [department, setDepartment] = useState("All departments");
+  const [accountType, setAccountType] = useState<"all" | "employee" | "admin">(
+    "all",
+  );
   const [view, setView] = useState<"people" | "groups" | "departments">(
     "people",
   );
@@ -2936,12 +2954,16 @@ function PeoplePage({
   const [editingDepartment, setEditingDepartment] = useState<Department | null>(
     null,
   );
+  const employees = recipients.filter(
+    (person) => person.accountType === "employee",
+  );
   const visible = recipients.filter(
     (person) =>
       `${person.name} ${person.email} ${person.role}`
         .toLowerCase()
         .includes(query.toLowerCase()) &&
-      (department === "All departments" || person.department === department),
+      (department === "All departments" || person.department === department) &&
+      (accountType === "all" || person.accountType === accountType),
   );
   const departmentOptions = [
     "All departments",
@@ -2964,12 +2986,13 @@ function PeoplePage({
   };
   const exportPeople = () => {
     const csv = [
-      "Name,Email,Phone,Role,Department,Facility,Building,Status",
+      "Name,Email,Phone,Type,Role,Department,Facility,Building,Status",
       ...visible.map((person) =>
         [
           person.name,
           person.email,
           person.phone,
+          person.accountType === "employee" ? "Employee" : "Portal user",
           person.role,
           person.department,
           person.facility,
@@ -3049,6 +3072,17 @@ function PeoplePage({
                 <option key={item}>{item}</option>
               ))}
             </select>
+            <select
+              aria-label="Filter by user type"
+              value={accountType}
+              onChange={(event) =>
+                setAccountType(event.target.value as typeof accountType)
+              }
+            >
+              <option value="all">All people</option>
+              <option value="employee">Employees</option>
+              <option value="admin">Portal users</option>
+            </select>
             <button className="filter-button" onClick={exportPeople}>
               <Download size={16} />
               Export
@@ -3058,7 +3092,7 @@ function PeoplePage({
             <span>Person</span>
             <span>Role & department</span>
             <span>Location</span>
-            <span>Mobile app</span>
+            <span>Access</span>
             <span>Status</span>
             <span />
           </div>
@@ -3077,11 +3111,23 @@ function PeoplePage({
               </div>
               <span>
                 <b>{person.role}</b>
-                <small>{person.department}</small>
+                <small>
+                  {person.accountType === "employee"
+                    ? person.department
+                    : "Portal user"}
+                </small>
               </span>
               <span>
-                <b>{person.facility}</b>
-                <small>{person.building}</small>
+                <b>
+                  {person.accountType === "employee"
+                    ? person.facility
+                    : "Web portal"}
+                </b>
+                <small>
+                  {person.accountType === "employee"
+                    ? person.building
+                    : "Organisation-wide"}
+                </small>
               </span>
               <button
                 className={`device-state ${person.status === "active" ? "ready" : "pending"}`}
@@ -3089,12 +3135,18 @@ function PeoplePage({
                 onClick={() => onResendInvitation(person.id)}
               >
                 <i>
-                  <Smartphone size={15} />
+                  {person.accountType === "employee" ? (
+                    <Smartphone size={15} />
+                  ) : (
+                    <ShieldCheck size={15} />
+                  )}
                 </i>
                 <span>
                   <b>
                     {person.status === "active"
-                      ? "App access active"
+                      ? person.accountType === "employee"
+                        ? "App access active"
+                        : "Portal access active"
                       : person.status === "invited"
                         ? "Invite pending"
                         : "Access unavailable"}
@@ -3144,7 +3196,7 @@ function PeoplePage({
           )}
           <div className="group-grid">
             {groups.map((group) => {
-              const members = recipients.filter((person) =>
+              const members = employees.filter((person) =>
                 group.memberIds.includes(person.id),
               );
               return (
@@ -3182,7 +3234,7 @@ function PeoplePage({
                   <small>{item.description}</small>
                   <em>
                     {
-                      recipients.filter(
+                      employees.filter(
                         (person) => person.department === item.name,
                       ).length
                     }{" "}
@@ -3205,25 +3257,15 @@ function PeoplePage({
           departments={departments}
           facilities={facilities}
           onClose={() => setEditingPerson(null)}
-          onSave={(next) => {
-            onRecipientsChange(
+          isCurrentUser={editingPerson.id === currentUserId}
+          onSave={async (next) => {
+            await onRecipientsChange(
               recipients.map((item) => (item.id === next.id ? next : item)),
             );
             setEditingPerson(null);
           }}
-          onDelete={() => {
-            onRecipientsChange(
-              recipients.filter((item) => item.id !== editingPerson.id),
-            );
-            if (canManageDirectory)
-              onGroupsChange(
-                groups.map((group) => ({
-                  ...group,
-                  memberIds: group.memberIds.filter(
-                    (id) => id !== editingPerson.id,
-                  ),
-                })),
-              );
+          onDelete={async () => {
+            await onDeleteUser(editingPerson);
             setEditingPerson(null);
           }}
         />
@@ -3231,7 +3273,7 @@ function PeoplePage({
       {editingGroup && canManageDirectory && (
         <GroupEditorModal
           group={editingGroup}
-          people={recipients}
+          people={employees}
           onClose={() => setEditingGroup(null)}
           onSave={(next) => {
             onGroupsChange(
@@ -6179,6 +6221,7 @@ function PersonEditorModal({
   person,
   departments,
   facilities,
+  isCurrentUser,
   onClose,
   onSave,
   onDelete,
@@ -6186,12 +6229,16 @@ function PersonEditorModal({
   person: Recipient;
   departments: Department[];
   facilities: Facility[];
+  isCurrentUser: boolean;
   onClose: () => void;
-  onSave: (person: Recipient) => void;
-  onDelete: () => void;
+  onSave: (person: Recipient) => Promise<void>;
+  onDelete: () => Promise<void>;
 }) {
   const [draft, setDraft] = useState(person);
   const [validationError, setValidationError] = useState("");
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const isEmployee = draft.accountType === "employee";
   const selectedFacility = facilities.find(
     (item) => item.name === draft.facility,
   );
@@ -6205,24 +6252,25 @@ function PersonEditorModal({
           event.preventDefault();
           setValidationError("");
           if (draft.name.trim().length < 2) {
-            setValidationError("Enter the employee’s full name.");
+            setValidationError("Enter the user’s full name.");
             return;
           }
           if (!isValidEmail(draft.email)) {
             setValidationError("Enter a valid work email address.");
             return;
           }
-          if (!isValidIndianMobile(draft.phone)) {
+          if (isEmployee && !isValidIndianMobile(draft.phone)) {
             setValidationError(
               "Enter a valid Indian mobile number, for example +91 98765 43210.",
             );
             return;
           }
-          onSave({
+          setBusy(true);
+          void onSave({
             ...draft,
             name: draft.name.trim(),
             email: draft.email.trim().toLowerCase(),
-            phone: normaliseIndianMobile(draft.phone),
+            phone: isEmployee ? normaliseIndianMobile(draft.phone) : draft.phone,
             role: draft.role.trim(),
             initials: draft.name
               .split(" ")
@@ -6230,11 +6278,16 @@ function PersonEditorModal({
               .join("")
               .slice(0, 2)
               .toUpperCase(),
-          });
+          }).catch(() => setBusy(false));
         }}
       >
         <div className="modal-header">
-          <h2>Edit person</h2>
+          <div>
+            <span className="eyebrow">
+              {isEmployee ? "EMPLOYEE" : "PORTAL USER"}
+            </span>
+            <h2>Edit person</h2>
+          </div>
           <button type="button" onClick={onClose}>
             <X size={21} />
           </button>
@@ -6263,96 +6316,156 @@ function PersonEditorModal({
                 onChange={(event) => field("email", event.target.value)}
               />
             </div>
-            <div>
-              <label>Phone</label>
-              <input
-                className="form-input"
-                type="tel"
-                inputMode="tel"
-                required
-                maxLength={18}
-                title="Enter a 10-digit Indian mobile number with +91"
-                value={draft.phone}
-                onChange={(event) => field("phone", event.target.value)}
-                onBlur={() => field("phone", normaliseIndianMobile(draft.phone))}
-              />
-            </div>
-            <div>
-              <label>Role</label>
-              <input
-                className="form-input"
-                required
-                maxLength={120}
-                value={draft.role}
-                onChange={(event) => field("role", event.target.value)}
-              />
-            </div>
-            <div>
-              <label>Department</label>
-              <select
-                className="form-input"
-                value={draft.department}
-                onChange={(event) => field("department", event.target.value)}
-              >
-                {departments.map((item) => (
-                  <option key={item.id}>{item.name}</option>
-                ))}
-              </select>
-            </div>
+            {isEmployee && (
+              <div>
+                <label>Phone</label>
+                <input
+                  className="form-input"
+                  type="tel"
+                  inputMode="tel"
+                  required
+                  maxLength={18}
+                  title="Enter a 10-digit Indian mobile number with +91"
+                  value={draft.phone}
+                  onChange={(event) => field("phone", event.target.value)}
+                  onBlur={() =>
+                    field("phone", normaliseIndianMobile(draft.phone))
+                  }
+                />
+              </div>
+            )}
+            {isEmployee ? (
+              <div>
+                <label>Job role</label>
+                <input
+                  className="form-input"
+                  required
+                  maxLength={120}
+                  value={draft.role}
+                  onChange={(event) => field("role", event.target.value)}
+                />
+              </div>
+            ) : (
+              <div>
+                <label>Portal role</label>
+                <div
+                  className="form-input readonly-form-field"
+                  aria-readonly="true"
+                >
+                  <span>{draft.role}</span>
+                  <small>Manage from Roles &amp; permissions</small>
+                </div>
+              </div>
+            )}
+            {isEmployee && (
+              <div>
+                <label>Department</label>
+                <select
+                  className="form-input"
+                  value={draft.department}
+                  onChange={(event) => field("department", event.target.value)}
+                >
+                  {departments.map((item) => (
+                    <option key={item.id}>{item.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
             <div>
               <label>Status</label>
-              <select
-                className="form-input"
-                value={draft.status}
-                onChange={(event) => field("status", event.target.value)}
+              <div
+                className="form-input readonly-form-field"
+                aria-readonly="true"
               >
-                <option value="invited">Invited</option>
-                <option value="active">Active</option>
-                <option value="suspended">Suspended</option>
-                <option value="disabled">Disabled</option>
-              </select>
-            </div>
-            <div>
-              <label>App role</label>
-              <div className="form-input readonly-form-field" aria-readonly="true">
-                <span>Employee</span>
-                <small>Read only</small>
+                <span>{draft.status}</span>
+                <small>Use the access controls below</small>
               </div>
             </div>
-            <div>
-              <label>Facility</label>
-              <select
-                className="form-input"
-                value={draft.facility}
-                onChange={(event) => {
-                  const facility = facilities.find(
-                    (item) => item.name === event.target.value,
-                  );
-                  setDraft((current) => ({
-                    ...current,
-                    facility: event.target.value,
-                    building: facility?.buildings[0]?.name ?? "",
-                  }));
-                }}
-              >
-                {facilities.map((item) => (
-                  <option key={item.id}>{item.name}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label>Building</label>
-              <select
-                className="form-input"
-                value={draft.building}
-                onChange={(event) => field("building", event.target.value)}
-              >
-                {selectedFacility?.buildings.map((item) => (
-                  <option key={item.id}>{item.name}</option>
-                ))}
-              </select>
-            </div>
+            {isEmployee && (
+              <div>
+                <label>App role</label>
+                <div
+                  className="form-input readonly-form-field"
+                  aria-readonly="true"
+                >
+                  <span>Employee</span>
+                  <small>Read only</small>
+                </div>
+              </div>
+            )}
+            {isEmployee && (
+              <div>
+                <label>Facility</label>
+                <select
+                  className="form-input"
+                  value={draft.facility}
+                  onChange={(event) => {
+                    const facility = facilities.find(
+                      (item) => item.name === event.target.value,
+                    );
+                    setDraft((current) => ({
+                      ...current,
+                      facility: event.target.value,
+                      building: facility?.buildings[0]?.name ?? "",
+                    }));
+                  }}
+                >
+                  {facilities.map((item) => (
+                    <option key={item.id}>{item.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+            {isEmployee && (
+              <div>
+                <label>Building</label>
+                <select
+                  className="form-input"
+                  value={draft.building}
+                  onChange={(event) => field("building", event.target.value)}
+                >
+                  {selectedFacility?.buildings.map((item) => (
+                    <option key={item.id}>{item.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
+          {isCurrentUser && (
+            <div className="info-note">
+              You cannot disable or delete the account you are currently using.
+            </div>
+          )}
+          {confirmingDelete && (
+            <div className="delete-user-confirmation" role="alert">
+              <b>Permanently delete {person.name}?</b>
+              <span>
+                Access, sessions, invitations and directory assignments will be
+                removed. Historical alert and audit records will be retained.
+              </span>
+              <div>
+                <button
+                  type="button"
+                  className="filter-button"
+                  disabled={busy}
+                  onClick={() => setConfirmingDelete(false)}
+                >
+                  Keep user
+                </button>
+                <button
+                  type="button"
+                  className="danger-button"
+                  disabled={busy}
+                  onClick={() => {
+                    setBusy(true);
+                    void onDelete().catch(() => setBusy(false));
+                  }}
+                >
+                  {busy ? "Deleting…" : "Permanently delete"}
+                </button>
+              </div>
+            </div>
+          )}
           {validationError && (
             <div className="form-error" role="alert">
               {validationError}
@@ -6360,16 +6473,33 @@ function PersonEditorModal({
           )}
         </div>
         <div className="modal-footer">
-          <button
-            type="button"
-            className="danger-text-button"
-            onClick={onDelete}
-          >
-            Disable person
-          </button>
-          <button className="primary-button" type="submit">
+          <div className="user-access-actions">
+            <button
+              type="button"
+              className="danger-text-button"
+              disabled={busy || isCurrentUser}
+              onClick={() => {
+                setBusy(true);
+                void onSave({
+                  ...draft,
+                  status: draft.status === "disabled" ? "active" : "disabled",
+                }).catch(() => setBusy(false));
+              }}
+            >
+              {draft.status === "disabled" ? "Restore access" : "Disable access"}
+            </button>
+            <button
+              type="button"
+              className="danger-text-button"
+              disabled={busy || isCurrentUser}
+              onClick={() => setConfirmingDelete(true)}
+            >
+              Delete permanently
+            </button>
+          </div>
+          <button className="primary-button" type="submit" disabled={busy}>
             <Check size={16} />
-            Save changes
+            {busy ? "Saving…" : "Save changes"}
           </button>
         </div>
       </form>
