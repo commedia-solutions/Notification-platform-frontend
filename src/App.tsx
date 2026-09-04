@@ -5906,8 +5906,8 @@ function AddPersonModal({
           <div className="info-note">
             <Smartphone size={19} />
             <span>
-              The recipient will receive a mobile app invitation after being
-              added.
+              The recipient will receive a secure email link to set their
+              password, then sign in to the mobile app.
             </span>
           </div>
           {validationError && (
