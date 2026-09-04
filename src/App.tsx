@@ -1334,6 +1334,7 @@ function App() {
                 (item) => item.tenantId === tenantId,
               )}
               channelSettings={channelSettings}
+              canCreateAlerts={hasPermission("alerts.create")}
               onCreate={openComposer}
               onViewAll={() => {
                 setDetailId(null);
@@ -1413,6 +1414,8 @@ function App() {
               facilities={facilityRecords.filter(
                 (item) => item.tenantId === tenantId,
               )}
+              canManageUsers={hasPermission("users.manage")}
+              canManageDirectory={hasPermission("directory.manage")}
               onRecipientsChange={syncRecipients}
               onDepartmentsChange={syncDepartments}
               onGroupsChange={syncGroups}
@@ -1431,6 +1434,7 @@ function App() {
             <FacilitiesPage
               tenantId={tenantId}
               facilities={facilityRecords}
+              canManage={hasPermission("directory.manage")}
               onChange={syncFacilities}
             />
           )}
@@ -1440,6 +1444,8 @@ function App() {
                 (item) => item.tenantId === tenantId,
               )}
               categories={templateCategories}
+              canManage={hasPermission("templates.manage")}
+              canCreateAlerts={hasPermission("alerts.create")}
               onCategoriesChange={setTemplateCategories}
               onUse={openComposer}
               onChange={syncTemplates}
@@ -1710,6 +1716,7 @@ function Overview({
   templates,
   facilities,
   channelSettings,
+  canCreateAlerts,
   onCreate,
   onViewAll,
   onOpenAlert,
@@ -1722,6 +1729,7 @@ function Overview({
   templates: MessageTemplate[];
   facilities: Facility[];
   channelSettings: ApiChannelSetting[];
+  canCreateAlerts: boolean;
   onCreate: (preset?: MessageTemplate) => void;
   onViewAll: () => void;
   onOpenAlert: (id: string) => void;
@@ -1837,7 +1845,11 @@ function Overview({
           />
           <div className="quick-list">
             {templates.slice(0, 3).map((template, index) => (
-              <button key={template.id} onClick={() => onCreate(template)}>
+              <button
+                key={template.id}
+                disabled={!canCreateAlerts}
+                onClick={() => onCreate(template)}
+              >
                 <span className={`quick-icon ${template.severity}`}>
                   {String(index + 1).padStart(2, "0")}
                 </span>
@@ -2201,9 +2213,7 @@ function BroadcastsPage({
           <span>
             <b>
               {
-                broadcasts.filter((item) =>
-                  historicalAlertStatuses.includes(item.status),
-                ).length
+                broadcasts.filter((item) => item.status === "resolved").length
               }
             </b>{" "}
             resolved
@@ -2895,6 +2905,8 @@ function PeoplePage({
   departments,
   groups,
   facilities,
+  canManageUsers,
+  canManageDirectory,
   onRecipientsChange,
   onDepartmentsChange,
   onGroupsChange,
@@ -2905,6 +2917,8 @@ function PeoplePage({
   departments: Department[];
   groups: AudienceGroup[];
   facilities: Facility[];
+  canManageUsers: boolean;
+  canManageDirectory: boolean;
   onRecipientsChange: (people: Recipient[]) => void;
   onDepartmentsChange: (departments: Department[]) => void;
   onGroupsChange: (groups: AudienceGroup[]) => void;
@@ -2934,7 +2948,7 @@ function PeoplePage({
     ...departments.map((item) => item.name),
   ];
   const createGroup = () => {
-    if (!newGroupName.trim()) return;
+    if (!canManageDirectory || !newGroupName.trim()) return;
     onGroupsChange([
       ...groups,
       {
@@ -3071,7 +3085,7 @@ function PeoplePage({
               </span>
               <button
                 className={`device-state ${person.status === "active" ? "ready" : "pending"}`}
-                disabled={person.status !== "invited"}
+                disabled={!canManageUsers || person.status !== "invited"}
                 onClick={() => onResendInvitation(person.id)}
               >
                 <i>
@@ -3097,31 +3111,37 @@ function PeoplePage({
               <span className={`status-pill ${person.status}`}>
                 {person.status}
               </span>
-              <button
-                title={`Manage ${person.name}`}
-                onClick={() => setEditingPerson(person)}
-              >
-                <MoreHorizontal size={18} />
-              </button>
+              {canManageUsers ? (
+                <button
+                  title={`Manage ${person.name}`}
+                  onClick={() => setEditingPerson(person)}
+                >
+                  <MoreHorizontal size={18} />
+                </button>
+              ) : (
+                <span aria-hidden="true" />
+              )}
             </div>
           ))}
         </div>
       ) : view === "groups" ? (
         <div className="panel data-panel">
-          <div className="toolbar">
-            <div className="search-box">
-              <UsersRound size={17} />
-              <input
-                value={newGroupName}
-                onChange={(event) => setNewGroupName(event.target.value)}
-                placeholder="New group name"
-              />
+          {canManageDirectory && (
+            <div className="toolbar">
+              <div className="search-box">
+                <UsersRound size={17} />
+                <input
+                  value={newGroupName}
+                  onChange={(event) => setNewGroupName(event.target.value)}
+                  placeholder="New group name"
+                />
+              </div>
+              <button className="primary-button" onClick={createGroup}>
+                <Plus size={16} />
+                Create group
+              </button>
             </div>
-            <button className="primary-button" onClick={createGroup}>
-              <Plus size={16} />
-              Create group
-            </button>
-          </div>
+          )}
           <div className="group-grid">
             {groups.map((group) => {
               const members = recipients.filter((person) =>
@@ -3141,7 +3161,9 @@ function PeoplePage({
                         : "No members yet"}
                     </em>
                   </div>
-                  <button onClick={() => setEditingGroup(group)}>Manage</button>
+                  {canManageDirectory && (
+                    <button onClick={() => setEditingGroup(group)}>Manage</button>
+                  )}
                 </div>
               );
             })}
@@ -3167,15 +3189,17 @@ function PeoplePage({
                     people
                   </em>
                 </div>
-                <button onClick={() => setEditingDepartment(item)}>
-                  Manage
-                </button>
+                {canManageDirectory && (
+                  <button onClick={() => setEditingDepartment(item)}>
+                    Manage
+                  </button>
+                )}
               </div>
             ))}
           </div>
         </div>
       )}
-      {editingPerson && (
+      {editingPerson && canManageUsers && (
         <PersonEditorModal
           person={editingPerson}
           departments={departments}
@@ -3191,19 +3215,20 @@ function PeoplePage({
             onRecipientsChange(
               recipients.filter((item) => item.id !== editingPerson.id),
             );
-            onGroupsChange(
-              groups.map((group) => ({
-                ...group,
-                memberIds: group.memberIds.filter(
-                  (id) => id !== editingPerson.id,
-                ),
-              })),
-            );
+            if (canManageDirectory)
+              onGroupsChange(
+                groups.map((group) => ({
+                  ...group,
+                  memberIds: group.memberIds.filter(
+                    (id) => id !== editingPerson.id,
+                  ),
+                })),
+              );
             setEditingPerson(null);
           }}
         />
       )}
-      {editingGroup && (
+      {editingGroup && canManageDirectory && (
         <GroupEditorModal
           group={editingGroup}
           people={recipients}
@@ -3222,7 +3247,7 @@ function PeoplePage({
           }}
         />
       )}
-      {editingDepartment && (
+      {editingDepartment && canManageDirectory && (
         <DepartmentEditorModal
           department={editingDepartment}
           onClose={() => setEditingDepartment(null)}
@@ -3230,14 +3255,6 @@ function PeoplePage({
             onDepartmentsChange(
               departments.map((item) => (item.id === next.id ? next : item)),
             );
-            if (next.name !== editingDepartment.name)
-              onRecipientsChange(
-                recipients.map((person) =>
-                  person.department === editingDepartment.name
-                    ? { ...person, department: next.name }
-                    : person,
-                ),
-              );
             setEditingDepartment(null);
           }}
           onDelete={() => {
@@ -3602,10 +3619,12 @@ function ResponsesPage({
 function FacilitiesPage({
   tenantId,
   facilities,
+  canManage,
   onChange,
 }: {
   tenantId: string;
   facilities: Facility[];
+  canManage: boolean;
   onChange: (facilities: Facility[]) => void;
 }) {
   const tenantFacilities = facilities.filter(
@@ -3658,13 +3677,15 @@ function FacilitiesPage({
                 {selected.address}
               </p>
             </div>
-            <button
-              className="secondary-button"
-              onClick={() => setEditing(selected)}
-            >
-              <Settings size={16} />
-              Manage
-            </button>
+            {canManage && (
+              <button
+                className="secondary-button"
+                onClick={() => setEditing(selected)}
+              >
+                <Settings size={16} />
+                Manage
+              </button>
+            )}
           </div>
           <div className="site-map">
             <div className="site-grid" />
@@ -3674,8 +3695,9 @@ function FacilitiesPage({
               <button
                 key={building.id}
                 title={`Edit ${building.name}`}
-                onClick={() => setEditing(selected)}
+                onClick={() => canManage && setEditing(selected)}
                 className="site-building"
+                disabled={!canManage}
                 style={{
                   left: `${building.x}%`,
                   top: `${building.y}%`,
@@ -3699,7 +3721,7 @@ function FacilitiesPage({
           </div>
         </div>
       </div>
-      {editing && (
+      {editing && canManage && (
         <FacilityEditorModal
           tenantId={tenantId}
           facility={editing}
@@ -3723,12 +3745,16 @@ function FacilitiesPage({
 function TemplatesPage({
   templates,
   categories,
+  canManage,
+  canCreateAlerts,
   onCategoriesChange,
   onUse,
   onChange,
 }: {
   templates: MessageTemplate[];
   categories: string[];
+  canManage: boolean;
+  canCreateAlerts: boolean;
   onCategoriesChange: (categories: string[]) => void;
   onUse: (preset: MessageTemplate) => void;
   onChange: (templates: MessageTemplate[]) => void;
@@ -3746,12 +3772,14 @@ function TemplatesPage({
               <span className={`severity-label ${template.severity}`}>
                 {template.category}
               </span>
-              <button
-                title={`Edit ${template.title}`}
-                onClick={() => setEditing(template)}
-              >
-                <MoreHorizontal size={18} />
-              </button>
+              {canManage && (
+                <button
+                  title={`Edit ${template.title}`}
+                  onClick={() => setEditing(template)}
+                >
+                  <MoreHorizontal size={18} />
+                </button>
+              )}
             </div>
             <h3>{template.title}</h3>
             <p>{template.message}</p>
@@ -3762,14 +3790,16 @@ function TemplatesPage({
                   ? "Acknowledgement required"
                   : "No acknowledgement"}
               </span>
-              <button onClick={() => onUse(template)}>
-                Use template <ChevronRight size={15} />
-              </button>
+              {canCreateAlerts && (
+                <button onClick={() => onUse(template)}>
+                  Use template <ChevronRight size={15} />
+                </button>
+              )}
             </footer>
           </div>
         ))}
       </div>
-      {editing && (
+      {editing && canManage && (
         <TemplateEditorModal
           tenantId={editing.tenantId}
           template={editing}
