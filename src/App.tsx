@@ -3559,7 +3559,7 @@ function ResponsesPage({
           <span>Employee</span>
           <span>Assignment</span>
           <span>Response</span>
-          <span>Time / note</span>
+          <span>Time / employee message</span>
           <span>Action</span>
         </div>
         {visible.map(
@@ -3589,14 +3589,18 @@ function ResponsesPage({
                       ? "Needs assistance"
                       : "Awaiting response"}
                 </span>
-                <span>
+                <span className="response-message">
                   <b>{response.respondedAt}</b>
-                  <small>
-                    {response.note ||
-                      (response.reminded
-                        ? "Reminder sent"
-                        : "No additional note")}
-                  </small>
+                  {response.note ? (
+                    <small className="employee-response-note">
+                      <MessageSquareText size={12} />
+                      <span>{response.note}</span>
+                    </small>
+                  ) : (
+                    <small>
+                      {response.reminded ? "Reminder sent" : "No message supplied"}
+                    </small>
+                  )}
                 </span>
                 <span>
                   {response.status === "awaiting" && canManageResponses && (
