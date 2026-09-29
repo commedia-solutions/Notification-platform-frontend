@@ -2,7 +2,8 @@
  * SignalOps product design system
  *
  * Centralised geometry, density, typography, responsive behavior, and
- * component styling. SignalOps retains its teal brand and safety status colors.
+ * component styling. The product shares the Smart Helmet yellow brand while
+ * retaining semantic safety status colors.
  */
 
 .app-shell {
@@ -17,9 +18,9 @@
   --fx-canvas: #f5f7f6;
   --fx-paper: #fff;
   --fx-soft: #f8faf9;
-  --fx-accent: #0f8b83;
-  --fx-accent-dark: #096a64;
-  --fx-accent-soft: #e9f7f5;
+  --fx-accent: #fed200;
+  --fx-accent-dark: #8a7100;
+  --fx-accent-soft: #fff8cc;
   width: 100vw;
   height: 100svh;
   min-height: 0;
@@ -469,8 +470,8 @@
   width: 36px;
   height: 36px;
   flex: 0 0 auto;
-  color: #fff;
-  background: linear-gradient(145deg, #14a69c, #08766f);
+  color: #111827;
+  background: linear-gradient(145deg, #ffe45c, #fed200);
   border-radius: 10px;
   box-shadow: none;
 }
@@ -497,7 +498,7 @@
   box-shadow: 0 4px 12px rgba(28, 46, 41, .12);
   transition: color .18s, border-color .18s, transform .18s;
 }
-.app-shell .sidebar-toggle:hover { color: var(--fx-accent-dark); border-color: #9ed5d1; transform: scale(1.04); }
+.app-shell .sidebar-toggle:hover { color: var(--fx-accent-dark); border-color: #e7c600; transform: scale(1.04); }
 .app-shell.sidebar-collapsed .sidebar-toggle { top: 86px; }
 .app-shell .nav-list {
   min-height: 0;
@@ -560,7 +561,7 @@
   width: 3px;
   height: 22px;
   border-radius: 0 3px 3px 0;
-  background: #1cc8bc;
+  background: var(--fx-accent);
 }
 .app-shell .nav-item svg { display: block; justify-self: center; flex: 0 0 auto; }
 .app-shell .nav-item b { min-width: 19px; height: 19px; margin: 0; padding: 0 5px; font-size: 8px; }
@@ -602,7 +603,7 @@
   border-radius: 10px;
   white-space: nowrap;
 }
-.app-shell .user-card .avatar { width: 32px; height: 32px; color: #fff; background: var(--fx-accent); border-radius: 8px; font-size: 9px; }
+.app-shell .user-card .avatar { width: 32px; height: 32px; color: #111827; background: var(--fx-accent); border-radius: 8px; font-size: 9px; }
 .app-shell .user-card strong { color: var(--fx-ink); font-size: 9px; font-weight: 650; }
 .app-shell .user-card span { display: block; margin-top: 2px; color: var(--fx-faint); font-size: 8px; }
 .app-shell.sidebar-collapsed .sidebar-bottom { padding-inline: 0; }
@@ -715,8 +716,9 @@
   font-size: 9px;
   font-weight: 600;
 }
-.app-shell .primary-button { background: var(--fx-accent); border: 1px solid var(--fx-accent-dark); box-shadow: 0 7px 16px rgba(9, 106, 100, .12); }
-.app-shell .primary-button:hover { background: #129990; transform: none; }
+.app-shell .primary-button { color: #111827; background: var(--fx-accent); border: 1px solid var(--fx-accent-dark); box-shadow: 0 7px 16px rgba(138, 113, 0, .12); }
+.app-shell .primary-button:hover { color: #111827; background: #e7bf00; transform: none; }
+.app-shell .send-button { color: #111827; }
 .app-shell .secondary-button { color: #596762; background: #fff; border: 1px solid var(--fx-line); }
 .app-shell .secondary-button:hover { color: var(--fx-ink); background: var(--fx-soft); border-color: #cdd8d4; }
 .app-shell .header-popover { top: 48px; border: 1px solid var(--fx-line); border-radius: 11px; box-shadow: 0 16px 42px rgba(29, 46, 41, .14); }
@@ -968,12 +970,12 @@
   display: grid;
   place-items: center;
   flex: 0 0 auto;
-  color: #fff;
-  background: linear-gradient(145deg, #14a69c, #08766f);
+  color: #111827;
+  background: linear-gradient(145deg, #ffe45c, #fed200);
   border-radius: 15px;
   font-size: 17px;
   font-weight: 700;
-  box-shadow: 0 10px 24px rgba(9, 106, 100, .16);
+  box-shadow: 0 10px 24px rgba(138, 113, 0, .16);
 }
 .app-shell .profile-status {
   display: inline-flex;
@@ -1237,6 +1239,39 @@
   .app-shell .response-incident-bar { align-items: flex-start; gap: 8px; }
   .app-shell .status-chip { display: none; }
 }
+
+/* Smart Helmet visual language on authentication screens. */
+.login-page {
+  background:
+    radial-gradient(circle at 84% 16%, rgba(254, 210, 0, .28), transparent 30%),
+    radial-gradient(circle at 12% 86%, rgba(254, 210, 0, .12), transparent 34%),
+    #f6f7fb;
+}
+.login-brand > span {
+  color: #111827;
+  background: #fed200;
+}
+.login-input:focus {
+  border-color: #d6b100;
+  box-shadow: 0 0 0 4px rgba(254, 210, 0, .2);
+}
+.login-checkbox.checked {
+  color: #111827;
+  background: #fed200;
+  border-color: #d6b100;
+}
+.login-submit {
+  color: #111827;
+  background: #fed200;
+  border: 1px solid #d6b100;
+}
+.login-submit:hover { background: #e7bf00; box-shadow: 0 8px 24px rgba(138, 113, 0, .18); }
+.recovery-actions .text-button { color: #8a7100; }
+.blob-1 { background: linear-gradient(135deg, #ffe978, #fed200); }
+.blob-2 { background: linear-gradient(135deg, #fff4af, #f4ca00); }
+.blob-3 { background: linear-gradient(135deg, #f8fafc, #cbd5e1); }
+.blob-4 { background: linear-gradient(135deg, #ffe45c, #d6b100); }
+.blob-5 { background: linear-gradient(135deg, #ffffff, #e2e8f0); }
 
 @media (prefers-reduced-motion: reduce) {
   .app-shell,

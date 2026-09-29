@@ -982,12 +982,10 @@ function App() {
     <div className={`app-shell ${sidebarCollapsed ? "sidebar-collapsed" : ""}`}>
       <aside className={`sidebar ${mobileNav ? "sidebar-open" : ""}`}>
         <div className="brand">
-          <div className="brand-mark">
-            <Radio size={22} />
-          </div>
+          <img className="brand-logo" src="/smart-helmet-logo.png" alt="Smart Helmet" />
           <div>
-            <strong>SignalOps</strong>
-            <span>Emergency communication</span>
+            <strong>Signal Ops</strong>
+            <span>Smart Helmet alerts</span>
           </div>
         </div>
         <button
@@ -1015,7 +1013,7 @@ function App() {
                 <div key={item.id}>
                   {item.group && <div className="nav-group">{item.group}</div>}
                   <button
-                    title={sidebarCollapsed ? item.label : undefined}
+                    title={item.label}
                     aria-label={item.label}
                     aria-current={page === item.id ? "page" : undefined}
                     className={`nav-item ${page === item.id ? "active" : ""}`}
@@ -1036,7 +1034,7 @@ function App() {
         <div className="sidebar-bottom">
           {canViewPage("settings") && (
             <button
-              title={sidebarCollapsed ? "Settings" : undefined}
+              title="Settings"
               aria-current={page === "settings" ? "page" : undefined}
               className={`nav-item ${page === "settings" ? "active" : ""}`}
               onClick={() => navigate("settings")}
@@ -1046,7 +1044,7 @@ function App() {
             </button>
           )}
           <button
-            title={sidebarCollapsed ? "Help & support" : undefined}
+            title="Help & support"
             className="nav-item"
             onClick={() => {
               window.location.href =
@@ -1055,6 +1053,18 @@ function App() {
           >
             <LifeBuoy size={18} strokeWidth={1.8} />
             <span>Help & support</span>
+          </button>
+          <button
+            title="Log out"
+            aria-label="Log out"
+            className="nav-item sidebar-signout"
+            onClick={async () => {
+              await api.logout();
+              setAuthenticated(false);
+            }}
+          >
+            <LogOut size={18} strokeWidth={1.8} />
+            <span>Log out</span>
           </button>
         </div>
       </aside>

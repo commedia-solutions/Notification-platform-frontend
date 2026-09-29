@@ -10,24 +10,29 @@ type ApiEnvelope<T> = { ok: true; data: T; meta?: Record<string, unknown> };
 type ApiFailure = {
   ok?: false;
   error?: { code?: string; message?: string; details?: unknown };
+  code?: string;
+  message?: string;
 };
 
 export class SignalOpsApiError extends Error {
   status: number;
   code: string;
   details?: unknown;
+  requestId?: string;
 
   constructor(
     status: number,
     code: string,
     message: string,
     details?: unknown,
+    requestId?: string,
   ) {
     super(message);
     this.name = "SignalOpsApiError";
     this.status = status;
     this.code = code;
     this.details = details;
+    this.requestId = requestId;
   }
 }
 
@@ -57,16 +62,24 @@ function clearAccessToken() {
 
 async function parseResponse<T>(response: Response): Promise<T> {
   if (response.status === 204) return undefined as T;
-  const payload = (await response.json().catch(() => ({}))) as
-    | ApiEnvelope<T>
-    | ApiFailure;
+  const responseText = await response.text();
+  let payload: ApiEnvelope<T> | ApiFailure = {};
+  try {
+    payload = responseText ? JSON.parse(responseText) : {};
+  } catch {
+    payload = {};
+  }
   if (!response.ok || !("ok" in payload) || payload.ok !== true) {
     const failure = payload as ApiFailure;
     throw new SignalOpsApiError(
       response.status,
-      failure.error?.code || "REQUEST_FAILED",
-      failure.error?.message || "The request could not be completed",
+      failure.error?.code || failure.code || "REQUEST_FAILED",
+      failure.error?.message ||
+        failure.message ||
+        (responseText && responseText.length < 240 ? responseText : "") ||
+        `Request failed (${response.status} ${response.statusText})`,
       failure.error?.details,
+      response.headers.get("x-request-id") || undefined,
     );
   }
   return payload.data;
@@ -119,7 +132,19 @@ async function request<T>(
   }
   if (response.status === 401 && retry && (await refreshSession()))
     return request<T>(path, init, false);
-  return parseResponse<T>(response);
+  try {
+    return await parseResponse<T>(response);
+  } catch (error) {
+    if (error instanceof SignalOpsApiError) {
+      console.error("SignalOps API request failed", {
+        path,
+        status: error.status,
+        code: error.code,
+        requestId: error.requestId,
+      });
+    }
+    throw error;
+  }
 }
 
 const body = (value: unknown) => JSON.stringify(value);

@@ -23,9 +23,9 @@
   --leading-normal: 1.5;
   --navy: #172033;
   --navy-2: #202b40;
-  --teal: #0f766e;
-  --teal-dark: #0b5f59;
-  --teal-soft: #ecfdf9;
+  --teal: #fed200;
+  --teal-dark: #8a7100;
+  --teal-soft: #fff8cc;
   --red: #dc3445;
   --red-soft: #fff1f2;
   --text: #0f172a;
@@ -42,7 +42,7 @@
   --radius-xl: 20px;
   --shadow: 0 1px 2px rgba(15, 23, 42, .045), 0 6px 18px rgba(15, 23, 42, .025);
   --shadow-lg: 0 20px 48px rgba(15, 23, 42, .14);
-  --focus-ring: 0 0 0 4px rgba(15, 118, 110, .12);
+  --focus-ring: 0 0 0 4px rgba(254, 210, 0, .22);
 }
 
 .brand strong, .tenant-logo, .tenant-switcher b, .tenant-dropdown b,
@@ -72,7 +72,7 @@ html { scroll-padding-top: 84px; -webkit-font-smoothing: antialiased; -moz-osx-f
 body { margin: 0; min-width: 320px; min-height: 100vh; color: var(--text); background: #f6f8fb; font-family: var(--font-sans); font-size: var(--text-base); line-height: var(--leading-normal); }
 button, input, select, textarea { font: inherit; }
 button { color: inherit; }
-button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid #0f766e; outline-offset: 2px; }
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid #8a7100; outline-offset: 2px; }
 
 .app-shell { min-height: 100vh; }
 .sidebar { position: fixed; inset: 0 auto 0 0; z-index: 40; width: 258px; background: var(--navy); color: #dbe4ec; display: flex; flex-direction: column; box-shadow: 1px 0 0 rgba(255,255,255,.03); }
@@ -580,7 +580,7 @@ body { font-size: 13px; }
   font-size: var(--text-sm);
   font-weight: var(--weight-semibold);
 }
-.primary-button { box-shadow: 0 1px 2px rgba(15, 118, 110, .2); }
+.primary-button { box-shadow: 0 1px 2px rgba(138, 113, 0, .2); }
 .secondary-button { color: var(--text-soft); border-color: var(--border); }
 .secondary-button:hover { border-color: var(--border-strong); background: var(--surface-subtle); }
 .text-button { min-height: 36px; font-size: var(--text-xs); font-weight: var(--weight-semibold); }
@@ -862,7 +862,7 @@ body { font-size: 13px; }
 .app-shell input:focus-visible,
 .app-shell select:focus-visible,
 .app-shell textarea:focus-visible {
-  outline: 2px solid #0f766e;
+  outline: 2px solid #8a7100;
   outline-offset: 2px;
 }
 
